@@ -1,6 +1,7 @@
 from pathlib import Path
 from os import getenv, path
 from dotenv import load_dotenv
+import shutil
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
@@ -27,6 +28,8 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "django_filters",
     "drf_yasg",
+    'tailwind',
+    'theme'
 ]
 
 LOCAL_APPS = [
@@ -50,10 +53,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
+TAILWIND_APP_NAME = 'theme'
+NPM_BIN_PATH = shutil.which("npm")
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [ str(APPS_DIR / 'templates')],
+        'DIRS': [  'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

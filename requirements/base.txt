@@ -17,6 +17,7 @@ colorama==0.4.6
 Django==5.2.4
 django-filter==25.1
 djangorestframework==3.16.0
+django-tailwind==4.2.0
 drf-yasg==1.21.10
 flower==2.0.1
 humanize==4.12.3
