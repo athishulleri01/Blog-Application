@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - BlogApp{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="h3 mb-3">Join our community</h2>
+                        <p class="text-muted">Create your account to start writing</p>
+                    </div>
+
+                    <form id="registerFormPage" method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_first_name" class="form-label">First Name</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.first_name.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_last_name" class="form-label">Last Name</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.last_name.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">Username</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.username.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_email" class="form-label">Email Address</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.email.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_password1" class="form-label">Password</label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password1.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_password2" class="form-label">Confirm Password</label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password2.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">
+                                I agree to the <a href="#" class="text-decoration-none">Terms of Service</a> and 
+                                <a href="#" class="text-decoration-none">Privacy Policy</a>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <span class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
+                            <span class="btn-text">Create Account</span>
+                        </button>
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors.0 }}
+                            </div>
+                        {% endif %}
+                    </form>
+
+                    <div class="text-center">
+                        <p class="mb-0">
+                            Already have an account? 
+                            <a href="{% url 'accounts:login' %}" class="text-decoration-none">Sign in</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1) !important;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(26, 137, 23, 0.25);
+}
+
+.btn-primary {
+    padding: 12px;
+    font-weight: 500;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const registerForm = document.getElementById('registerFormPage');
+    if (registerForm) {
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const formData = new FormData(this);
+            
+            BlogApp.setLoadingState(submitBtn, true);
+            
+            try {
+                const response = await fetch('/accounts/ajax/register/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': BlogApp.getCsrfToken(),
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    BlogApp.showNotification(data.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url || '/';
+                    }, 1000);
+                } else {
+                    if (data.errors) {
+                        // Clear previous errors
+                        this.querySelectorAll('.is-invalid').forEach(field => {
+                            field.classList.remove('is-invalid');
+                        });
+                        this.querySelectorAll('.invalid-feedback').forEach(feedback => {
+                            if (!feedback.classList.contains('d-block')) {
+                                feedback.remove();
+                            }
+                        });
+
+                        // Show new errors
+                        for (const [field, messages] of Object.entries(data.errors)) {
+                            const fieldElement = this.querySelector(`[name="${field}"]`);
+                            if (fieldElement) {
+                                fieldElement.classList.add('is-invalid');
+                                const feedback = fieldElement.parentNode.querySelector('.invalid-feedback') ||
+                                                document.createElement('div');
+                                feedback.className = 'invalid-feedback d-block';
+                                feedback.textContent = Array.isArray(messages) ? messages[0] : messages;
+                                if (!fieldElement.parentNode.querySelector('.invalid-feedback')) {
+                                    fieldElement.parentNode.appendChild(feedback);
+                                }
+                            }
+                        }
+                    } else {
+                        BlogApp.showNotification(data.message || 'Registration failed', 'danger');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                BlogApp.showNotification('An error occurred. Please try again.', 'danger');
+            } finally {
+                BlogApp.setLoadingState(submitBtn, false);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

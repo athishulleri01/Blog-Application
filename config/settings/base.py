@@ -28,13 +28,12 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "django_filters",
     "drf_yasg",
-    'tailwind',
-    'theme'
+    'bootstrap5',
 ]
 
 LOCAL_APPS = [
-    "core_apps.users",
     "core_apps.posts",
+    "core_apps.accounts",
     "core_apps.comments",
 ]
 
@@ -53,8 +52,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
-TAILWIND_APP_NAME = 'theme'
-NPM_BIN_PATH = shutil.which("npm")
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -83,6 +81,24 @@ DATABASES = {
     }
 }
 
+
+# REST Framework settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
+}
+
+
+# Authentication
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -128,9 +144,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
+# Static files
 STATIC_URL = '/static/'
-
+STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = str(BASE_DIR/ "staticfiles")
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
