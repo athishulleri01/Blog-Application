@@ -1,0 +1,754 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ post.title }} - BlogApp{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Post Header -->
+             
+            <div class="post-header mb-4">
+                <h1 class="display-5 fw-bold mb-3">{{ post.title }}</h1>
+                
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div class="d-flex align-items-center">
+                        <div class="author-avatar me-3">
+                            <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center">
+                                {{ post.author.first_name.0|default:post.author.username.0|upper }}
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-medium">
+                                <a href="{% url 'accounts:user_profile' post.author.username %}" class="text-decoration-none text-dark">
+                                    {{ post.author.get_full_name|default:post.author.username }}
+                                </a>
+                            </h6>
+                            <div class="text-muted small">
+                                Published {{ post.created_at|date:"F d, Y" }} · 
+                                {% widthratio post.content|wordcount|add:"100" 200 1 %} min read
+                                {% if post.updated_at != post.created_at %}
+                                    <span class="ms-2">
+                                        <i class="fas fa-edit"></i> Updated {{ post.updated_at|date:"M d, Y" }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if user == post.author %}
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-cog"></i> Options
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editPostModal">
+                                    <i class="fas fa-edit me-2"></i>Edit Post
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" onclick="deletePost({{ post.id }})">
+                                    <i class="fas fa-trash me-2"></i>Delete Post
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Post Actions -->
+                <div class="post-actions-bar border-top border-bottom py-3 mb-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-outline-light text-muted like-btn me-3 
+                                    {% if is_liked %}liked{% endif %}"
+                                    onclick="toggleLike({{ post.id }})" 
+                                    {% if not user.is_authenticated %}disabled data-bs-toggle="modal" data-bs-target="#loginModal"{% endif %}>
+                                <i class="fas fa-heart me-1"></i>
+                                <span class="like-count">{{ total_likes }}</span>
+                            </button>
+                            
+                            <button class="btn btn-outline-light text-muted me-3" onclick="scrollToComments()">
+                                <i class="fas fa-comment me-1"></i>
+                                {{ total_comments }}
+                            </button>
+                            
+                            <button class="btn btn-outline-light text-muted" onclick="sharePost({{ post.id }})">
+                                <i class="fas fa-share me-1"></i>
+                                Share
+                            </button>
+                        </div>
+                        
+                        <div class="social-share d-none d-md-flex">
+                            <button class="btn btn-sm btn-outline-primary me-2" onclick="shareOnTwitter()">
+                                <i class="fab fa-twitter"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary me-2" onclick="shareOnFacebook()">
+                                <i class="fab fa-facebook"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="copyLink()">
+                                <i class="fas fa-link"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post Content -->
+            <div class="post-content mb-5">
+                <div class="content-text">
+                    {{ post.content|linebreaks }}
+                </div>
+            </div>
+
+            <!-- Post Footer -->
+            <div class="post-footer mb-5">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center">
+                            <div class="author-avatar me-3">
+                                <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center">
+                                    {{ post.author.first_name.0|default:post.author.username.0|upper }}
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">
+                                    <a href="{% url 'accounts:user_profile' post.author.username %}" class="text-decoration-none text-dark">
+                                        {{ post.author.get_full_name|default:post.author.username }}
+                                    </a>
+                                </h6>
+                                <p class="text-muted small mb-0">
+                                    Thanks for reading! Follow for more insights.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <button class="btn btn-primary btn-sm">
+                            <i class="fas fa-user-plus me-1"></i>Follow
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="comments-section" id="comments">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>Responses ({{ total_comments }})</h4>
+                </div>
+
+                <!-- Add Comment Form -->
+                {% if user.is_authenticated %}
+                <div class="add-comment-form mb-5">
+                    <div class="d-flex">
+                        <div class="author-avatar me-3 flex-shrink-0">
+                            <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center">
+                                {{ user.first_name.0|default:user.username.0|upper }}
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <form id="commentForm">
+                                <div class="mb-3">
+                                    <textarea class="form-control" id="commentText" name="text" rows="3" 
+                                              placeholder="What are your thoughts?" required></textarea>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-primary" onclick="addComment()">
+                                        <span class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
+                                        <span class="btn-text">Respond</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center mb-5 p-4 bg-light rounded-3">
+                    <h5 class="mb-3">Join the conversation</h5>
+                    <p class="text-muted mb-3">Sign in to leave a response</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        Sign In
+                    </button>
+                </div>
+                {% endif %}
+
+                <!-- Comments List -->
+                <div id="commentsList">
+                    {% for comment in comments %}
+                        {% include 'blog/components/comment_item.html' %}
+                    {% empty %}
+                        <div class="text-center py-5" id="noCommentsMessage">
+                            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No responses yet</h5>
+                            <p class="text-muted">Be the first to share what you think!</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Post Modal -->
+{% if user.is_authenticated %}
+<div class="modal fade" id="createPostModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">Share your story</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <form id="createPostForm">
+                    <div class="mb-3">
+                        <input type="text" class="form-control form-control-lg border-0 px-0" 
+                               id="postTitle" name="title" placeholder="Title" required>
+                    </div>
+                    <div class="mb-3">
+                        <textarea class="form-control border-0 px-0" id="postContent" name="content" 
+                                  rows="10" placeholder="Tell your story..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <div class="d-flex justify-content-between w-100 align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Your story will be published immediately
+                    </small>
+                    <div>
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="createPost()">
+                            <span class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
+                            <span class="btn-text">Publish</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Edit Post Modal -->
+{% if user == post.author %}
+<div class="modal fade" id="editPostModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">Edit your story</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <form id="editPostForm">
+                    <div class="mb-3">
+                        <input type="text" class="form-control form-control-lg border-0 px-0" 
+                               id="editPostTitle" name="title" value="{{ post.title }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <textarea class="form-control border-0 px-0" id="editPostContent" name="content" 
+                                  rows="15" required>{{ post.content }}</textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <div class="d-flex justify-content-between w-100 align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Changes will be saved immediately
+                    </small>
+                    <div>
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="updatePost()">
+                            <span class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
+                            <span class="btn-text">Save Changes</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .post-header h1 {
+        line-height: 1.2;
+        font-weight: 700;
+    }
+
+    .author-avatar .avatar-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .post-actions-bar {
+        position: sticky;
+        top: 80px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        z-index: 100;
+    }
+
+    .content-text {
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text-primary);
+    }
+
+    .content-text p {
+        margin-bottom: 1.5rem;
+    }
+
+    .like-btn {
+        border: none !important;
+        transition: all 0.3s ease;
+    }
+
+    .like-btn:hover {
+        color: #e91e63 !important;
+        background-color: rgba(233, 30, 99, 0.1) !important;
+    }
+
+    .like-btn.liked {
+        color: #e91e63 !important;
+        background-color: rgba(233, 30, 99, 0.1) !important;
+    }
+
+    .social-share .btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .add-comment-form .form-control {
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .add-comment-form .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(26, 137, 23, 0.1);
+    }
+
+    #editPostModal .form-control {
+        font-size: 16px;
+    }
+
+    #editPostModal .form-control:focus {
+        box-shadow: none;
+        border-bottom: 2px solid var(--primary-color) !important;
+    }
+
+    #editPostTitle {
+        font-size: 24px !important;
+        font-weight: 600;
+    }
+
+    .post-footer {
+        border-top: 1px solid var(--border-color);
+        padding-top: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .post-actions-bar {
+            position: static;
+        }
+        
+        .social-share {
+            display: none !important;
+        }
+        
+        .content-text {
+            font-size: 16px;
+        }
+        
+        .add-comment-form .d-flex {
+            flex-direction: column;
+        }
+        
+        .add-comment-form .author-avatar {
+            align-self: flex-start;
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/blog.js' %}"></script>
+<script>
+    const postId = {{ post.id }};
+
+    // Like functionality
+    async function toggleLike(postId) {
+        try {
+            const response = await BlogApp.api.post(`/ajax/posts/${postId}/like/`);
+            
+            if (response.success) {
+                const likeBtn = document.querySelector('.like-btn');
+                const likeCount = likeBtn.querySelector('.like-count');
+                
+                if (response.is_liked) {
+                    likeBtn.classList.add('liked');
+                } else {
+                    likeBtn.classList.remove('liked');
+                }
+                
+                likeCount.textContent = response.total_likes;
+                
+                // Update all like buttons on the page
+                document.querySelectorAll(`.like-btn[onclick="toggleLike(${postId})"]`).forEach(btn => {
+                    const count = btn.querySelector('.like-count');
+                    if (count) count.textContent = response.total_likes;
+                    
+                    if (response.is_liked) {
+                        btn.classList.add('liked');
+                    } else {
+                        btn.classList.remove('liked');
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error toggling like:', error);
+            BlogApp.showNotification('Failed to update like', 'danger');
+        }
+    }
+
+    // Add comment
+    async function addComment() {
+        const form = document.getElementById('commentForm');
+        const submitBtn = form.querySelector('.btn-primary');
+        const textarea = document.getElementById('commentText');
+        const text = textarea.value.trim();
+        
+        if (!text) {
+            BlogApp.showNotification('Please enter a comment', 'danger');
+            return;
+        }
+        
+        BlogApp.setLoadingState(submitBtn, true);
+        
+        try {
+            const response = await BlogApp.api.post(`/ajax/posts/${postId}/comments/`, {
+                text: text
+            });
+            
+            if (response.success) {
+                // Add comment to list
+                addCommentToList(response.comment);
+                
+                // Clear form
+                textarea.value = '';
+                
+                // Hide "no comments" message
+                const noCommentsMsg = document.getElementById('noCommentsMessage');
+                if (noCommentsMsg) {
+                    noCommentsMsg.remove();
+                }
+                
+                // Update comment count
+                updateCommentCount();
+                
+                BlogApp.showNotification(response.message, 'success');
+            } else {
+                if (response.errors) {
+                    BlogApp.showNotification(response.errors.text?.[0] || 'Please check your input', 'danger');
+                } else {
+                    BlogApp.showNotification(response.message || 'Failed to add comment', 'danger');
+                }
+            }
+        } catch (error) {
+            console.error('Error adding comment:', error);
+            BlogApp.showNotification('Failed to add comment', 'danger');
+        } finally {
+            BlogApp.setLoadingState(submitBtn, false);
+        }
+    }
+
+    // Add comment to list
+    function addCommentToList(comment) {
+        const commentsList = document.getElementById('commentsList');
+        const commentHtml = `
+            <div class="comment-item mb-4 pb-4 border-bottom" data-comment-id="${comment.id}">
+                <div class="d-flex">
+                    <div class="author-avatar me-3 flex-shrink-0">
+                        <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center">
+                            ${comment.author_full_name.charAt(0).toUpperCase()}
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-0 fw-medium">${comment.author_full_name}</h6>
+                                <small class="text-muted">${comment.created_at}</small>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-light text-muted dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" onclick="deleteComment(${comment.id})">
+                                            <i class="fas fa-trash me-2"></i>Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p class="mb-0">${comment.text}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        commentsList.insertAdjacentHTML('beforeend', commentHtml);
+    }
+
+    // Delete comment
+    async function deleteComment(commentId) {
+        if (!confirm('Are you sure you want to delete this comment?')) {
+            return;
+        }
+        
+        try {
+            const response = await BlogApp.api.delete(`/ajax/comments/${commentId}/delete/`);
+            
+            if (response.success) {
+                // Remove comment from DOM
+                const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+                if (commentElement) {
+                    commentElement.remove();
+                }
+                
+                // Update comment count
+                updateCommentCount();
+                
+                BlogApp.showNotification(response.message, 'success');
+            }
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+            BlogApp.showNotification('Failed to delete comment', 'danger');
+        }
+    }
+
+    // Update comment count
+    function updateCommentCount() {
+        const commentItems = document.querySelectorAll('.comment-item').length;
+        const commentCountElements = document.querySelectorAll('.fa-comment').forEach(el => {
+            const countElement = el.parentNode.textContent.trim().split(' ')[0];
+            el.parentNode.innerHTML = `<i class="fas fa-comment me-1"></i>${commentItems}`;
+        });
+        
+        // Update header
+        const headerCount = document.querySelector('#comments h4');
+        if (headerCount) {
+            headerCount.textContent = `Responses (${commentItems})`;
+        }
+    }
+
+    // Update post
+    async function updatePost() {
+        const form = document.getElementById('editPostForm');
+        const submitBtn = document.querySelector('#editPostModal .btn-primary');
+        const formData = new FormData(form);
+        
+        const title = formData.get('title').trim();
+        const content = formData.get('content').trim();
+        
+        if (!title || !content) {
+            BlogApp.showNotification('Please fill in all fields', 'danger');
+            return;
+        }
+        
+        BlogApp.setLoadingState(submitBtn, true);
+        
+        try {
+            const response = await fetch(`/ajax/posts/${postId}/update/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': BlogApp.getCsrfToken(),
+                },
+                body: JSON.stringify({
+                    title: title,
+                    content: content
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update page content
+                document.querySelector('.post-header h1').textContent = data.post.title;
+                document.querySelector('.content-text').innerHTML = data.post.content.replace(/\n/g, '<br>');
+                
+                // Update "updated" text
+                const updatedText = document.querySelector('.text-muted.small');
+                if (updatedText && updatedText.textContent.includes('Updated')) {
+                    updatedText.innerHTML = updatedText.innerHTML.replace(/Updated .+/, `Updated ${data.post.updated_at}`);
+                } else if (updatedText) {
+                    updatedText.innerHTML += ` <span class="ms-2"><i class="fas fa-edit"></i> Updated ${data.post.updated_at}</span>`;
+                }
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editPostModal'));
+                modal.hide();
+                
+                BlogApp.showNotification(data.message, 'success');
+            } else {
+                BlogApp.showNotification(data.message || 'Failed to update post', 'danger');
+            }
+        } catch (error) {
+            console.error('Error updating post:', error);
+            BlogApp.showNotification('Failed to update post', 'danger');
+        } finally {
+            BlogApp.setLoadingState(submitBtn, false);
+        }
+    }
+
+    // Delete post
+    async function deletePost(postId) {
+        if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            const response = await BlogApp.api.delete(`/ajax/posts/${postId}/delete/`);
+            
+            if (response.success) {
+                BlogApp.showNotification(response.message, 'success');
+                setTimeout(() => {
+                    window.location.href = response.redirect_url || '/';
+                }, 1500);
+            }
+        } catch (error) {
+            console.error('Error deleting post:', error);
+            BlogApp.showNotification('Failed to delete post', 'danger');
+        }
+    }
+
+    // Scroll to comments
+    function scrollToComments() {
+        document.getElementById('comments').scrollIntoView({
+            behavior: 'smooth'
+        });
+    }
+
+    // Share functions
+    function sharePost(postId) {
+        if (navigator.share) {
+            navigator.share({
+                title: document.querySelector('.post-header h1').textContent,
+                url: window.location.href
+            });
+        } else {
+            copyLink();
+        }
+    }
+
+    function shareOnTwitter() {
+        const title = document.querySelector('.post-header h1').textContent;
+        const url = window.location.href;
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`, '_blank');
+    }
+
+    function shareOnFacebook() {
+        const url = window.location.href;
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+    }
+
+    function copyLink() {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            BlogApp.showNotification('Link copied to clipboard!', 'success');
+        });
+    }
+
+        // Create post function
+    async function createPost() {
+        const form = document.getElementById('createPostForm');
+        const submitBtn = document.querySelector('#createPostModal .btn-primary');
+        const formData = new FormData(form);
+        
+        // Validate form
+        const title = formData.get('title').trim();
+        const content = formData.get('content').trim();
+        
+        if (!title || !content) {
+            BlogApp.showNotification('Please fill in all fields', 'danger');
+            return;
+        }
+        
+        BlogApp.setLoadingState(submitBtn, true);
+        
+        try {
+            const response = await BlogApp.api.post('/ajax/posts/create/', {
+                title: title,
+                content: content
+            });
+            
+            if (response.success) {
+                BlogApp.showNotification(response.message, 'success');
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('createPostModal'));
+                modal.hide();
+                
+                // Reset form
+                form.reset();
+                
+                // Redirect to post or reload page
+                setTimeout(() => {
+                    if (response.redirect_url) {
+                        window.location.href = response.redirect_url;
+                    } else {
+                        window.location.reload();
+                    }
+                }, 1000);
+            } else {
+                if (response.errors) {
+                    showFormErrors(form, response.errors);
+                } else {
+                    BlogApp.showNotification(response.message || 'Failed to create post', 'danger');
+                }
+            }
+        } catch (error) {
+            console.error('Error creating post:', error);
+            BlogApp.showNotification('An error occurred while creating the post', 'danger');
+        } finally {
+            BlogApp.setLoadingState(submitBtn, false);
+        }
+    }
+
+    function showFormErrors(form, errors) {
+        // Clear previous errors
+        form.querySelectorAll('.is-invalid').forEach(field => {
+            field.classList.remove('is-invalid');
+        });
+        form.querySelectorAll('.invalid-feedback').forEach(feedback => {
+            feedback.remove();
+        });
+
+        // Show new errors
+        for (const [field, messages] of Object.entries(errors)) {
+            const fieldElement = form.querySelector(`[name="${field}"]`);
+            if (fieldElement) {
+                fieldElement.classList.add('is-invalid');
+                const feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                feedback.textContent = Array.isArray(messages) ? messages[0] : messages;
+                fieldElement.parentNode.appendChild(feedback);
+            }
+        }
+    }
+</script>
+{% endblock %}

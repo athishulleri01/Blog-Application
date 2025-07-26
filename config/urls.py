@@ -7,7 +7,9 @@ urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     path("", include("core_apps.posts.urls")),
     path('accounts/', include('core_apps.accounts.urls')),
-    path('api/', include('core_apps.posts.urls'))
+    path('api/', include('core_apps.posts.urls')),
+    path('', include('core_apps.comments.urls')),
+    path('api/', include('core_apps.comments.urls')),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,205 @@
+<div class="comment-item mb-4 pb-4 border-bottom" data-comment-id="{{ comment.id }}">
+    <div class="d-flex">
+        <div class="author-avatar me-3 flex-shrink-0">
+            <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center">
+                {{ comment.author.first_name.0|default:comment.author.username.0|upper }}
+            </div>
+        </div>
+        <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h6 class="mb-0 fw-medium">
+                        <a href="{% url 'accounts:user_profile' comment.author.username %}" class="text-decoration-none text-dark">
+                            {{ comment.author.get_full_name|default:comment.author.username }}
+                        </a>
+                    </h6>
+                    <small class="text-muted">
+                        {{ comment.created_at|date:"M d, Y" }} · {{ comment.created_at|timesince }} ago
+                    </small>
+                </div>
+                
+                {% if user == comment.author %}
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-light text-muted dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="editComment({{ comment.id }})">
+                                <i class="fas fa-edit me-2"></i>Edit
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="#" onclick="deleteComment({{ comment.id }})">
+                                <i class="fas fa-trash me-2"></i>Delete
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="comment-text">
+                <p class="mb-2">{{ comment.text|linebreaks }}</p>
+            </div>
+            
+            <div class="comment-actions">
+                <button class="btn btn-sm btn-outline-light text-muted me-2" onclick="likeComment({{ comment.id }})">
+                    <i class="far fa-heart me-1"></i>
+                    <span class="like-count">0</span>
+                </button>
+                
+                <button class="btn btn-sm btn-outline-light text-muted" onclick="replyToComment({{ comment.id }})">
+                    <i class="fas fa-reply me-1"></i>
+                    Reply
+                </button>
+            </div>
+            
+            <!-- Reply form (hidden by default) -->
+            <div class="reply-form mt-3 d-none" id="replyForm{{ comment.id }}">
+                <div class="d-flex">
+                    <div class="author-avatar me-2 flex-shrink-0">
+                        <div class="avatar-circle bg-secondary text-white d-flex align-items-center justify-content-center small">
+                            {% if user.is_authenticated %}
+                                {{ user.first_name.0|default:user.username.0|upper }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <textarea class="form-control form-control-sm mb-2" placeholder="Write a reply..." rows="2"></textarea>
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-sm btn-secondary me-2" onclick="cancelReply({{ comment.id }})">Cancel</button>
+                            <button class="btn btn-sm btn-primary" onclick="submitReply({{ comment.id }})">Reply</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.comment-item {
+    transition: background-color 0.3s ease;
+}
+
+.comment-item:hover {
+    background-color: rgba(0,0,0,0.02);
+    border-radius: 8px;
+    padding: 16px;
+    margin: -8px;
+}
+
+.comment-item .author-avatar .avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.comment-item .dropdown-toggle {
+    border: none;
+    background: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.comment-item:hover .dropdown-toggle {
+    opacity: 1;
+}
+
+.comment-actions .btn {
+    border: none;
+    background: none;
+    padding: 4px 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.comment-actions .btn:hover {
+    background-color: rgba(0,0,0,0.05);
+    color: var(--primary-color) !important;
+}
+
+.reply-form .avatar-circle {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+}
+
+.reply-form .form-control {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.reply-form .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.1rem rgba(26, 137, 23, 0.1);
+}
+
+@media (max-width: 768px) {
+    .comment-item:hover {
+        background-color: transparent;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .comment-item .dropdown-toggle {
+        opacity: 1;
+    }
+    
+    .reply-form .d-flex {
+        flex-direction: column;
+    }
+    
+    .reply-form .author-avatar {
+        align-self: flex-start;
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+
+<script>
+function editComment(commentId) {
+    // Implementation for editing comment
+    console.log('Edit comment:', commentId);
+    // This would show an inline edit form
+}
+
+function likeComment(commentId) {
+    // Implementation for liking comment
+    console.log('Like comment:', commentId);
+    // This would toggle like status for the comment
+}
+
+function replyToComment(commentId) {
+    const replyForm = document.getElementById(`replyForm${commentId}`);
+    replyForm.classList.remove('d-none');
+    replyForm.querySelector('textarea').focus();
+}
+
+function cancelReply(commentId) {
+    const replyForm = document.getElementById(`replyForm${commentId}`);
+    replyForm.classList.add('d-none');
+    replyForm.querySelector('textarea').value = '';
+}
+
+function submitReply(commentId) {
+    const replyForm = document.getElementById(`replyForm${commentId}`);
+    const textarea = replyForm.querySelector('textarea');
+    const replyText = textarea.value.trim();
+    
+    if (!replyText) {
+        BlogApp.showNotification('Please enter a reply', 'danger');
+        return;
+    }
+    
+    // Implementation for submitting reply
+    console.log('Submit reply to comment:', commentId, replyText);
+    
+    // After successful submission:
+    cancelReply(commentId);
+    BlogApp.showNotification('Reply added successfully!', 'success');
+}
+</script>

@@ -1,0 +1,464 @@
+
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Home - BlogApp{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    {% if not user.is_authenticated %}
+    <div class="hero-section bg-gradient text-center py-5 mb-5 rounded-3">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">Stay curious.</h1>
+                <p class="lead mb-4">Discover stories, thinking, and expertise from writers on any topic.</p>
+                <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
+                    Start reading
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Search and Filter Section -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h4 mb-0">
+                        {% if search_query %}
+                            Search results for "{{ search_query }}"
+                        {% else %}
+                            Latest Posts
+                        {% endif %}
+                    </h2>
+                    <small class="text-muted">{{ posts.paginator.count }} post{{ posts.paginator.count|pluralize }}</small>
+                </div>
+                
+                <!-- Live Search -->
+                <div class="search-container position-relative">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search posts..." 
+                               value="{{ search_query }}" autocomplete="off">
+                        <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div id="searchResults" class="search-results position-absolute w-100 bg-white border rounded-3 shadow-sm d-none">
+                        <!-- Search results will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posts List -->
+            <div id="postsList">
+                {% for post in posts %}
+                    {% include 'blog/components/post_card.html' %}
+                {% empty %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No posts found</h4>
+                        {% if search_query %}
+                            <p class="text-muted">Try adjusting your search terms.</p>
+                            <a href="{% url 'posts:home' %}" class="btn btn-outline-primary">View all posts</a>
+                        {% else %}
+                            <p class="text-muted">Be the first to share your story!</p>
+                            {% if user.is_authenticated %}
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                                    <i class="fas fa-plus me-1"></i>Create your first post
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if posts.has_other_pages %}
+            <nav aria-label="Posts pagination" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if posts.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ posts.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in posts.paginator.page_range %}
+                        {% if page_num == posts.number %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% elif page_num > posts.number|add:'-3' and page_num < posts.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_num }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if posts.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ posts.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 100px;">
+                <!-- Trending Topics -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-fire text-warning me-2"></i>Trending Topics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-light text-dark border">#Technology</span>
+                            <span class="badge bg-light text-dark border">#Programming</span>
+                            <span class="badge bg-light text-dark border">#Design</span>
+                            <span class="badge bg-light text-dark border">#Startup</span>
+                            <span class="badge bg-light text-dark border">#AI</span>
+                            <span class="badge bg-light text-dark border">#WebDev</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Writing Tips -->
+                {% if user.is_authenticated %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>Writing Tips
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <small>Write compelling headlines</small>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <small>Start with a hook</small>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <small>Use clear, concise language</small>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <small>Engage with your readers</small>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Post Modal -->
+{% if user.is_authenticated %}
+<div class="modal fade" id="createPostModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">Share your story</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <form id="createPostForm">
+                    <div class="mb-3">
+                        <input type="text" class="form-control form-control-lg border-0 px-0" 
+                               id="postTitle" name="title" placeholder="Title" required>
+                    </div>
+                    <div class="mb-3">
+                        <textarea class="form-control border-0 px-0" id="postContent" name="content" 
+                                  rows="10" placeholder="Tell your story..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <div class="d-flex justify-content-between w-100 align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Your story will be published immediately
+                    </small>
+                    <div>
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="createPost()">
+                            <span class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
+                            <span class="btn-text">Publish</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #1a8917 100%);
+        color: white;
+    }
+
+    .search-container {
+        width: 300px;
+    }
+
+    .search-results {
+        max-height: 400px;
+        overflow-y: auto;
+        z-index: 1000;
+        top: 100%;
+        left: 0;
+    }
+
+    .search-result-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .search-result-item:hover {
+        background-color: var(--bg-light);
+    }
+
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .page-link {
+        color: var(--primary-color);
+        border-color: var(--border-color);
+    }
+
+    .page-link:hover {
+        color: var(--primary-color);
+        background-color: var(--bg-light);
+        border-color: var(--primary-color);
+    }
+
+    .page-item.active .page-link {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .badge {
+        font-weight: 500;
+        padding: 6px 12px;
+    }
+
+    #createPostModal .form-control {
+        font-size: 16px;
+    }
+
+    #createPostModal .form-control:focus {
+        box-shadow: none;
+        border-bottom: 2px solid var(--primary-color) !important;
+    }
+
+    #postTitle {
+        font-size: 24px !important;
+        font-weight: 600;
+    }
+
+    #postTitle::placeholder {
+        color: #ccc;
+    }
+
+    @media (max-width: 768px) {
+        .search-container {
+            width: 250px;
+        }
+        
+        .hero-section {
+            margin-left: -15px;
+            margin-right: -15px;
+            border-radius: 0 !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/blog.js' %}"></script>
+<script>
+    // Live search functionality
+    let searchTimeout;
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const searchBtn = document.getElementById('searchBtn');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 2) {
+                searchResults.classList.add('d-none');
+                return;
+            }
+            
+            searchTimeout = setTimeout(() => {
+                performSearch(query);
+            }, 300);
+        });
+
+        // Handle search button click
+        searchBtn.addEventListener('click', function() {
+            const query = searchInput.value.trim();
+            if (query) {
+                window.location.href = `/?search=${encodeURIComponent(query)}`;
+            }
+        });
+
+        // Handle Enter key
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchBtn.click();
+            }
+        });
+
+        // Hide search results when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.add('d-none');
+            }
+        });
+    }
+
+    async function performSearch(query) {
+        try {
+            const response = await fetch(`/api/search/?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            displaySearchResults(data.results);
+        } catch (error) {
+            console.error('Search error:', error);
+        }
+    }
+
+    function displaySearchResults(results) {
+        if (results.length === 0) {
+            searchResults.innerHTML = '<div class="search-result-item text-muted">No results found</div>';
+        } else {
+            searchResults.innerHTML = results.map(post => `
+                <div class="search-result-item" onclick="window.location.href='/post/${post.id}/'">
+                    <div class="fw-medium">${post.title}</div>
+                    <div class="text-muted small">${post.content_preview}</div>
+                    <div class="text-muted small mt-1">
+                        by ${post.author_full_name} · ${post.created_at_formatted}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        searchResults.classList.remove('d-none');
+    }
+
+    // Create post function
+    async function createPost() {
+        const form = document.getElementById('createPostForm');
+        const submitBtn = document.querySelector('#createPostModal .btn-primary');
+        const formData = new FormData(form);
+        
+        // Validate form
+        const title = formData.get('title').trim();
+        const content = formData.get('content').trim();
+        
+        if (!title || !content) {
+            BlogApp.showNotification('Please fill in all fields', 'danger');
+            return;
+        }
+        
+        BlogApp.setLoadingState(submitBtn, true);
+        
+        try {
+            const response = await BlogApp.api.post('/ajax/posts/create/', {
+                title: title,
+                content: content
+            });
+            
+            if (response.success) {
+                BlogApp.showNotification(response.message, 'success');
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('createPostModal'));
+                modal.hide();
+                
+                // Reset form
+                form.reset();
+                
+                // Redirect to post or reload page
+                setTimeout(() => {
+                    if (response.redirect_url) {
+                        window.location.href = response.redirect_url;
+                    } else {
+                        window.location.reload();
+                    }
+                }, 1000);
+            } else {
+                if (response.errors) {
+                    showFormErrors(form, response.errors);
+                } else {
+                    BlogApp.showNotification(response.message || 'Failed to create post', 'danger');
+                }
+            }
+        } catch (error) {
+            console.error('Error creating post:', error);
+            BlogApp.showNotification('An error occurred while creating the post', 'danger');
+        } finally {
+            BlogApp.setLoadingState(submitBtn, false);
+        }
+    }
+
+    function showFormErrors(form, errors) {
+        // Clear previous errors
+        form.querySelectorAll('.is-invalid').forEach(field => {
+            field.classList.remove('is-invalid');
+        });
+        form.querySelectorAll('.invalid-feedback').forEach(feedback => {
+            feedback.remove();
+        });
+
+        // Show new errors
+        for (const [field, messages] of Object.entries(errors)) {
+            const fieldElement = form.querySelector(`[name="${field}"]`);
+            if (fieldElement) {
+                fieldElement.classList.add('is-invalid');
+                const feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                feedback.textContent = Array.isArray(messages) ? messages[0] : messages;
+                fieldElement.parentNode.appendChild(feedback);
+            }
+        }
+    }
+</script>
+{% endblock %}

@@ -17,10 +17,10 @@ from .models import UserProfile
 class CustomLoginView(LoginView):
     form_class = CustomAuthenticationForm
     template_name = 'accounts/login.html'
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('posts:home')
 
 class CustomLogoutView(LogoutView):
-    next_page = reverse_lazy('home')
+    next_page = reverse_lazy('posts:home')
 
 @require_http_methods(["POST"])
 def ajax_register(request):

@@ -1,0 +1,156 @@
+<div class="card mb-4 post-card" data-post-id="{{ post.id }}">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="d-flex align-items-center">
+                <div class="author-avatar me-3">
+                    <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center">
+                        {{ post.author.first_name.0|default:post.author.username.0|upper }}
+                    </div>
+                </div>
+                <div>
+                    <h6 class="mb-0 fw-medium">
+                        <a href="{% url 'accounts:user_profile' post.author.username %}" class="text-decoration-none text-dark">
+                            {{ post.author.get_full_name|default:post.author.username }}
+                        </a>
+                    </h6>
+                    <small class="text-muted">{{ post.created_at|date:"M d, Y" }} · {{ post.created_at|timesince }} ago</small>
+                </div>
+            </div>
+            
+            {% if user == post.author %}
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-h"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="#" onclick="editPost({{ post.id }})">
+                            <i class="fas fa-edit me-2"></i>Edit
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="#" onclick="deletePost({{ post.id }})">
+                            <i class="fas fa-trash me-2"></i>Delete
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+
+        <h5 class="card-title mb-2">
+            <a href="{% url 'posts:post_detail' post.id %}" class="text-decoration-none text-dark">
+                {{ post.title }}
+            </a>
+        </h5>
+        
+        <p class="card-text text-muted mb-3">
+            {{ post.content|truncatewords:25 }}
+        </p>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="post-actions">
+                <button class="btn btn-sm btn-outline-light text-muted like-btn me-3 
+                        {% if user.is_authenticated and user in post.likes.all %}liked{% endif %}"
+                        onclick="toggleLike({{ post.id }})" 
+                        {% if not user.is_authenticated %}disabled data-bs-toggle="modal" data-bs-target="#loginModal"{% endif %}>
+                    <i class="fas fa-heart me-1"></i>
+                    <span class="like-count">{{ post.total_likes }}</span>
+                </button>
+                
+                <a href="{% url 'posts:post_detail' post.id %}#comments" class="btn btn-sm btn-outline-light text-muted text-decoration-none me-3">
+                    <i class="fas fa-comment me-1"></i>
+                    {{ post.total_comments }}
+                </a>
+                
+                <button class="btn btn-sm btn-outline-light text-muted" onclick="sharePost({{ post.id }})">
+                    <i class="fas fa-share me-1"></i>
+                    Share
+                </button>
+            </div>
+            
+            <div class="reading-time">
+                <small class="text-muted">
+                    <i class="fas fa-clock me-1"></i>
+                    {% widthratio post.content|wordcount|add:"100" 200 1 %} min read
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.post-card {
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.post-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.author-avatar .avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.card-title a:hover {
+    color: var(--primary-color) !important;
+}
+
+.like-btn {
+    border: none !important;
+    transition: all 0.3s ease;
+}
+
+.like-btn:hover {
+    color: #e91e63 !important;
+    background-color: rgba(233, 30, 99, 0.1) !important;
+}
+
+.like-btn.liked {
+    color: #e91e63 !important;
+    background-color: rgba(233, 30, 99, 0.1) !important;
+}
+
+.like-btn.liked i {
+    animation: heartbeat 0.6s ease-in-out;
+}
+
+@keyframes heartbeat {
+    0% { transform: scale(1); }
+    20% { transform: scale(1.25); }
+    40% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.post-actions .btn {
+    transition: all 0.3s ease;
+}
+
+.post-actions .btn:hover {
+    background-color: var(--bg-light) !important;
+    border-color: var(--border-color) !important;
+}
+
+.reading-time {
+    opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+    .post-actions {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .reading-time {
+        width: 100%;
+        margin-top: 10px;
+        text-align: left;
+    }
+}
+</style>

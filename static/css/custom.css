@@ -304,6 +304,7 @@ h1, h2, h3, h4, h5, h6 {
     body {
         background-color: #212529;
         color: var(--text-primary);
+       
     }
     
     .card,
@@ -348,4 +349,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .slide-in {
     animation: slideIn 0.3s ease;
+}
+
+.navbar {
+    /* position: fixed; */
+    top: 0;
+    /* bottom: 10%; */
+    width: 100%;
+    z-index: 1080; 
 }
