@@ -12,4 +12,6 @@ urlpatterns = [
     # AJAX endpoints
     path('ajax/posts/<int:post_id>/comments/', views.create_comment_ajax, name='create_comment_ajax'),
     path('ajax/comments/<int:comment_id>/delete/', views.delete_comment_ajax, name='delete_comment_ajax'),
+    path('comments/ajax/edit/<int:comment_id>/', views.edit_comment_ajax, name='edit_comment_ajax'),
+    
 ]

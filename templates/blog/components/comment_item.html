@@ -15,6 +15,11 @@
                     </h6>
                     <small class="text-muted">
                         {{ comment.created_at|date:"M d, Y" }} · {{ comment.created_at|timesince }} ago
+                        {% if comment.updated_at and comment.updated_at != comment.created_at %}
+                            <span class="updated-indicator ms-2">
+                                <i class="fas fa-edit me-1"></i>edited
+                            </span>
+                        {% endif %}
                     </small>
                 </div>
                 
@@ -25,12 +30,12 @@
                     </button>
                     <ul class="dropdown-menu">
                         <li>
-                            <a class="dropdown-item" href="#" onclick="editComment({{ comment.id }})">
+                            <a class="dropdown-item" href="#" onclick="editComment({{ comment.id }}); return false;">
                                 <i class="fas fa-edit me-2"></i>Edit
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item text-danger" href="#" onclick="deleteComment({{ comment.id }})">
+                            <a class="dropdown-item text-danger" href="#" onclick="deleteComment({{ comment.id }}); return false;">
                                 <i class="fas fa-trash me-2"></i>Delete
                             </a>
                         </li>
@@ -44,7 +49,7 @@
             </div>
             
             <div class="comment-actions">
-                <button class="btn btn-sm btn-outline-light text-muted me-2" onclick="likeComment({{ comment.id }})">
+                <button class="btn btn-sm btn-outline-light text-muted me-2" onclick="">
                     <i class="far fa-heart me-1"></i>
                     <span class="like-count">0</span>
                 </button>
@@ -138,6 +143,43 @@
     box-shadow: 0 0 0 0.1rem rgba(26, 137, 23, 0.1);
 }
 
+/* Edit form styles */
+.edit-form {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    margin-top: 8px;
+}
+
+.edit-form .form-control {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+.edit-form .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(26, 137, 23, 0.1);
+}
+
+.edit-form .form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+.edit-form .invalid-feedback {
+    display: block;
+    font-size: 0.875rem;
+    color: #dc3545;
+    margin-top: 0.25rem;
+}
+
+.comment-text .updated-indicator {
+    font-size: 0.75rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
 @media (max-width: 768px) {
     .comment-item:hover {
         background-color: transparent;
@@ -157,49 +199,282 @@
         align-self: flex-start;
         margin-bottom: 0.5rem;
     }
+    
+    .edit-form {
+        padding: 10px;
+    }
 }
 </style>
 
 <script>
-function editComment(commentId) {
-    // Implementation for editing comment
-    console.log('Edit comment:', commentId);
-    // This would show an inline edit form
-}
+    function replyToComment(commentId) {
+        const replyForm = document.getElementById(`replyForm${commentId}`);
+        replyForm.classList.remove('d-none');
+        replyForm.querySelector('textarea').focus();
+    }
 
-function likeComment(commentId) {
-    // Implementation for liking comment
-    console.log('Like comment:', commentId);
-    // This would toggle like status for the comment
-}
+    function cancelReply(commentId) {
+        const replyForm = document.getElementById(`replyForm${commentId}`);
+        replyForm.classList.add('d-none');
+        replyForm.querySelector('textarea').value = '';
+    }
 
-function replyToComment(commentId) {
-    const replyForm = document.getElementById(`replyForm${commentId}`);
-    replyForm.classList.remove('d-none');
-    replyForm.querySelector('textarea').focus();
-}
+    function submitReply(commentId) {
+        const replyForm = document.getElementById(`replyForm${commentId}`);
+        const textarea = replyForm.querySelector('textarea');
+        const replyText = textarea.value.trim();
+        
+        if (!replyText) {
+            BlogApp.showNotification('Please enter a reply', 'danger');
+            return;
+        }
+        
+        // Implementation for submitting reply
+        console.log('Submit reply to comment:', commentId, replyText);
+        
+        // After successful submission:
+        cancelReply(commentId);
+        BlogApp.showNotification('Reply added successfully!', 'success');
+    }
+    // Edit Comment Functions
+    function editComment(commentId) {
+        console.log('Edit comment:', commentId);
+        
+        // Hide the comment text and show edit form
+        const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
+        if (!commentItem) {
+            console.error('Comment not found:', commentId);
+            return;
+        }
+        
+        const commentTextDiv = commentItem.querySelector('.comment-text');
+        const commentParagraph = commentTextDiv.querySelector('p');
+        
+        // Get the original text content, preserving line breaks
+        let commentText = '';
+        if (commentParagraph.innerHTML.includes('<br>')) {
+            // If it has HTML line breaks, convert them back to newlines
+            commentText = commentParagraph.innerHTML.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '').trim();
+        } else {
+            // If it's plain text, just get the text content
+            commentText = commentParagraph.textContent.trim();
+        }
+        
+        // Hide original text
+        commentTextDiv.style.display = 'none';
+        
+        // Create or show edit form
+        let editForm = commentItem.querySelector('.edit-form');
+        if (!editForm) {
+            editForm = createEditForm(commentId, commentText);
+            commentTextDiv.insertAdjacentElement('afterend', editForm);
+        } else {
+            editForm.classList.remove('d-none');
+            editForm.querySelector('textarea').value = commentText;
+        }
+        
+        // Focus on textarea
+        editForm.querySelector('textarea').focus();
+        
+        // Hide dropdown menu
+        const dropdownBtn = commentItem.querySelector('.dropdown-toggle');
+        if (dropdownBtn) {
+            // Close dropdown using Bootstrap
+            const dropdown = bootstrap.Dropdown.getInstance(dropdownBtn);
+            if (dropdown) dropdown.hide();
+        }
+    }
 
-function cancelReply(commentId) {
-    const replyForm = document.getElementById(`replyForm${commentId}`);
-    replyForm.classList.add('d-none');
-    replyForm.querySelector('textarea').value = '';
-}
+    function createEditForm(commentId, originalText) {
+        const editFormHtml = `
+            <div class="edit-form mt-2" id="editForm${commentId}">
+                <div class="mb-3">
+                    <textarea class="form-control" id="editTextarea${commentId}" rows="3" placeholder="Edit your comment...">${originalText}</textarea>
+                    <div class="invalid-feedback" id="editError${commentId}"></div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-sm btn-secondary me-2" onclick="cancelEdit(${commentId})">
+                        Cancel
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="saveEdit(${commentId})">
+                        <span class="save-text">Save</span>
+                        <span class="spinner-border spinner-border-sm d-none ms-2" role="status"></span>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = editFormHtml;
+        return tempDiv.firstElementChild;
+    }
 
-function submitReply(commentId) {
-    const replyForm = document.getElementById(`replyForm${commentId}`);
-    const textarea = replyForm.querySelector('textarea');
-    const replyText = textarea.value.trim();
+    function cancelEdit(commentId) {
+        console.log('Cancel edit:', commentId);
+        
+        const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
+        if (!commentItem) return;
+        
+        // Show original comment text
+        const commentTextDiv = commentItem.querySelector('.comment-text');
+        commentTextDiv.style.display = 'block';
+        
+        // Hide edit form
+        const editForm = commentItem.querySelector('.edit-form');
+        if (editForm) {
+            editForm.classList.add('d-none');
+            // Clear any error states
+            const textarea = editForm.querySelector('textarea');
+            const errorDiv = editForm.querySelector('.invalid-feedback');
+            textarea.classList.remove('is-invalid');
+            if (errorDiv) errorDiv.textContent = '';
+        }
+    }
+
+    async function saveEdit(commentId) {
+    console.log('Save edit:', commentId);
     
-    if (!replyText) {
-        BlogApp.showNotification('Please enter a reply', 'danger');
+    const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
+    if (!commentItem) return;
+    
+    const editForm = commentItem.querySelector('.edit-form');
+    const textarea = editForm.querySelector('textarea');
+    const saveBtn = editForm.querySelector('.btn-primary');
+    const saveText = saveBtn.querySelector('.save-text');
+    const spinner = saveBtn.querySelector('.spinner-border');
+    const errorDiv = editForm.querySelector('.invalid-feedback');
+    
+    const newText = textarea.value.trim();
+    
+    // Validation
+    if (!newText) {
+        textarea.classList.add('is-invalid');
+        errorDiv.textContent = 'Comment cannot be empty.';
         return;
     }
     
-    // Implementation for submitting reply
-    console.log('Submit reply to comment:', commentId, replyText);
+    // Clear previous errors
+    textarea.classList.remove('is-invalid');
+    errorDiv.textContent = '';
     
-    // After successful submission:
-    cancelReply(commentId);
-    BlogApp.showNotification('Reply added successfully!', 'success');
+    // Show loading state
+    saveBtn.disabled = true;
+    saveText.textContent = 'Saving...';
+    spinner.classList.remove('d-none');
+    
+    try {
+        const response = await fetch(`/comments/ajax/edit/${commentId}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': BlogApp.getCsrfToken()
+            },
+            body: JSON.stringify({ text: newText })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update the comment text in DOM - preserving line breaks
+            const commentTextDiv = commentItem.querySelector('.comment-text p');
+            
+            // Convert line breaks to HTML properly
+            const formattedText = newText.split('\n').map(line => {
+                return line.trim() === '' ? '<br>' : line;
+            }).join('<br>');
+            
+            commentTextDiv.innerHTML = formattedText;
+            
+            // Add "edited" indicator if it doesn't exist
+            let updatedIndicator = commentItem.querySelector('.updated-indicator');
+            if (!updatedIndicator) {
+                updatedIndicator = document.createElement('span');
+                updatedIndicator.className = 'updated-indicator ms-2';
+                updatedIndicator.innerHTML = '<i class="fas fa-edit me-1"></i>edited';
+                
+                const timeElement = commentItem.querySelector('.text-muted');
+                if (timeElement) {
+                    timeElement.appendChild(updatedIndicator);
+                }
+            }
+            
+            // Hide edit form and show original text
+            editForm.classList.add('d-none');
+            commentItem.querySelector('.comment-text').style.display = 'block';
+            
+            // Show success message
+            BlogApp.showNotification(data.message, 'success');
+            
+        } else {
+            // Handle errors
+            if (data.errors && data.errors.text) {
+                textarea.classList.add('is-invalid');
+                errorDiv.textContent = Array.isArray(data.errors.text) ? data.errors.text[0] : data.errors.text;
+            } else {
+                BlogApp.showNotification(data.message || 'Failed to update comment', 'danger');
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error updating comment:', error);
+        BlogApp.showNotification('An error occurred while updating the comment', 'danger');
+    } finally {
+        // Reset button state
+        saveBtn.disabled = false;
+        saveText.textContent = 'Save';
+        spinner.classList.add('d-none');
+    }
 }
+    // Helper function to get CSRF token
+    function getCsrfToken() {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            return csrfToken.value;
+        }
+        
+        // Try to get from cookie
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') {
+                return value;
+            }
+        }
+        
+        // Try to get from meta tag
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) {
+            return metaTag.getAttribute('content');
+        }
+        
+        console.warn('CSRF token not found');
+        return '';
+    }
+
+    // Simple notification fallback
+    function showSimpleNotification(message, type) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type === 'danger' ? 'danger' : 'success'} alert-dismissible fade show`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 300px;
+        `;
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification && notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
+    }
 </script>

@@ -154,3 +154,43 @@
     }
 }
 </style>
+
+{% block extra_js %}
+<script>
+    // Like functionality
+    async function toggleLike({{post.id}}) {
+        try {
+            const response = await BlogApp.api.post(`/ajax/posts/${{post.id}}/like/`);
+            
+            if (response.success) {
+                const likeBtn = document.querySelector('.like-btn');
+                const likeCount = likeBtn.querySelector('.like-count');
+                
+                if (response.is_liked) {
+                    likeBtn.classList.add('liked');
+                } else {
+                    likeBtn.classList.remove('liked');
+                }
+                
+                likeCount.textContent = response.total_likes;
+                
+                // Update all like buttons on the page
+                document.querySelectorAll(`.like-btn[onclick="toggleLike(${{post.id}})"]`).forEach(btn => {
+                    const count = btn.querySelector('.like-count');
+                    if (count) count.textContent = response.total_likes;
+                    
+                    if (response.is_liked) {
+                        btn.classList.add('liked');
+                    } else {
+                        btn.classList.remove('liked');
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error toggling like:', error);
+            BlogApp.showNotification('Failed to update like', 'danger');
+        }
+    }
+
+</script>
+{% endblock %}

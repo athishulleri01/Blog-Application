@@ -1,5 +1,5 @@
-{% extends 'base.html' %} {% block title %}Login - BlogApp{% endblock %} {%
-block content %}
+{% extends 'base.html' %} {% block title %}Login - BlogApp{% endblock %} 
+{% block content %}
 <div class="container">
   <div class="row justify-content-center">
     <div class="col-md-6 col-lg-5">
@@ -82,7 +82,8 @@ block content %}
     font-weight: 500;
   }
 </style>
-{% endblock %} {% block extra_js %}
+{% endblock %} 
+{% block extra_js %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const loginForm = document.getElementById("loginFormPage");

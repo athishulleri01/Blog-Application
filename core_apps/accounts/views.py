@@ -110,14 +110,14 @@ def profile_view(request, username=None):
         user = request.user
     
     profile, created = UserProfile.objects.get_or_create(user=user)
-    # posts = user.post_set.all().order_by('-created_at')
-    # comments = user.comment_set.all().order_by('-created_at')
+    posts = user.post_set.all().order_by('-created_at')
+    comments = user.comment_set.all().order_by('-created_at')
     
     context = {
         'profile_user': user,
         'profile': profile,
-        # 'posts': posts,
-        # 'comments': comments,
+        'posts': posts,
+        'comments': comments,
     }
     return render(request, 'user/profile/profile.html', context)
 

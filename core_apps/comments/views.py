@@ -11,6 +11,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 import json
+from django.template.defaultfilters import linebreaks
 
 from core_apps.posts.models import Post
 from .models import Comment
@@ -117,3 +118,79 @@ def delete_comment_ajax(request, comment_id):
             'success': False,
             'message': f'An error occurred: {str(e)}'
         })
+
+
+@require_http_methods(["PUT"])
+@login_required
+def edit_comment_ajax(request, comment_id):
+    try:
+        # Get the comment and check ownership
+        comment = get_object_or_404(Comment, id=comment_id)
+
+        # Check if user owns the comment
+        if comment.author != request.user:
+            return JsonResponse({
+                'success': False,
+                'message': 'You are not authorized to edit this comment.'
+            }, status=403)
+
+        # Parse JSON data
+        try:
+            if not request.body:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'No data received'
+                }, status=400)
+                
+            data = json.loads(request.body.decode('utf-8'))
+            print(f"Parsed data: {data}")
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error: {e}")
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid JSON data'
+            }, status=400)
+
+        # Get and validate the new text
+        new_text = data.get('text', '').strip()
+        print(f"New text: '{new_text}'")
+        
+        if not new_text:
+            return JsonResponse({
+                'success': False,
+                'errors': {'text': ['This field is required.']}
+            }, status=400)
+
+        # Update the comment
+        old_text = comment.text
+        comment.text = new_text
+        comment.save()
+        
+        print(f"Comment updated from '{old_text}' to '{new_text}'")
+
+        # Return success response
+        return JsonResponse({
+            'success': True,
+            'message': 'Comment updated successfully!',
+            'comment': {
+                'id': comment.id,
+                'text': comment.text, 
+                'text_html': linebreaks(comment.text),  
+                'author': comment.author.username,
+                'updated_at': str(comment.updated_at),
+            }
+        })
+
+    except Comment.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Comment not found.'
+        }, status=404)
+    except Exception as e:
+        print(f"Unexpected error in edit_comment_ajax: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': f'An error occurred: {str(e)}'
+        }, status=500)
