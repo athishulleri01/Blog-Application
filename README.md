@@ -156,7 +156,7 @@ pip install -r requirements\base.txt
 ```
 
 ### 4. Environment Configuration
-Create a `.env.local` file in the .envs folder:
+Create a `.env.local` file in the .envs folder and copy all data from `.env.example` file to `.env.local` and add proper data:
 
 ```env
 SECRET_KEY=your-secret-key-here
