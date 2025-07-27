@@ -5,13 +5,14 @@
 2. [Features](#features)
 3. [Project Structure](#project-structure)
 4. [Setup Instructions](#setup-instructions)
-5. [API Documentation](#api-documentation)
-6. [Frontend Features](#frontend-features)
-7. [Models Documentation](#models-documentation)
-8. [Views Documentation](#views-documentation)
-9. [URL Configuration](#url-configuration)
-10. [Testing](#testing)
-11. [Deployment](#deployment)
+5. [Screenshots](#screenshots)
+6. [API Documentation](#api-documentation)
+7. [Frontend Features](#frontend-features)
+8. [Models Documentation](#models-documentation)
+9. [Views Documentation](#views-documentation)
+10. [URL Configuration](#url-configuration)
+11. [Testing](#testing)
+12. [Deployment](#deployment)
 
 ## Project Overview
 
