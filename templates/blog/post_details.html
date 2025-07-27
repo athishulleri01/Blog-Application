@@ -7,35 +7,37 @@
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <!-- Post Header -->
-             
+
             <div class="post-header mb-4">
                 <h1 class="display-5 fw-bold mb-3">{{ post.title }}</h1>
-                
+
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <div class="d-flex align-items-center">
                         <div class="author-avatar me-3">
-                            <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center">
+                            <div
+                                class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center">
                                 {{ post.author.first_name.0|default:post.author.username.0|upper }}
                             </div>
                         </div>
                         <div>
                             <h6 class="mb-0 fw-medium">
-                                <a href="{% url 'accounts:user_profile' post.author.username %}" class="text-decoration-none text-dark">
+                                <a href="{% url 'accounts:user_profile' post.author.username %}"
+                                    class="text-decoration-none text-dark">
                                     {{ post.author.get_full_name|default:post.author.username }}
                                 </a>
                             </h6>
                             <div class="text-muted small">
-                                Published {{ post.created_at|date:"F d, Y" }} · 
+                                Published {{ post.created_at|date:"F d, Y" }} ·
                                 {% widthratio post.content|wordcount|add:"100" 200 1 %} min read
                                 {% if post.updated_at != post.created_at %}
-                                    <span class="ms-2">
-                                        <i class="fas fa-edit"></i> Updated {{ post.updated_at|date:"M d, Y" }}
-                                    </span>
+                                <span class="ms-2">
+                                    <i class="fas fa-edit"></i> Updated {{ post.updated_at|date:"M d, Y" }}
+                                </span>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
-                    
+
                     {% if user == post.author %}
                     <div class="dropdown">
                         <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
@@ -43,11 +45,14 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li>
-                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editPostModal">
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#editPostModal">
                                     <i class="fas fa-edit me-2"></i>Edit Post
                                 </a>
                             </li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li>
                                 <a class="dropdown-item text-danger" href="#" onclick="deletePost({{ post.id }})">
                                     <i class="fas fa-trash me-2"></i>Delete Post
@@ -63,24 +68,24 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center">
                             <button class="btn btn-outline-light text-muted like-btn me-3 
-                                    {% if is_liked %}liked{% endif %}"
-                                    onclick="toggleLike({{ post.id }})" 
-                                    {% if not user.is_authenticated %}disabled data-bs-toggle="modal" data-bs-target="#loginModal"{% endif %}>
+                                    {% if is_liked %}liked{% endif %}" onclick="toggleLike({{ post.id }})" {% if not
+                                user.is_authenticated %}disabled data-bs-toggle="modal" data-bs-target="#loginModal" {%
+                                endif %}>
                                 <i class="fas fa-heart me-1"></i>
                                 <span class="like-count">{{ total_likes }}</span>
                             </button>
-                            
+
                             <button class="btn btn-outline-light text-muted me-3" onclick="scrollToComments()">
                                 <i class="fas fa-comment me-1"></i>
                                 {{ total_comments }}
                             </button>
-                            
+
                             <button class="btn btn-outline-light text-muted" onclick="sharePost({{ post.id }})">
                                 <i class="fas fa-share me-1"></i>
                                 Share
                             </button>
                         </div>
-                        
+
                         <div class="social-share d-none d-md-flex">
                             <button class="btn btn-sm btn-outline-primary me-2" onclick="shareOnTwitter()">
                                 <i class="fab fa-twitter"></i>
@@ -109,13 +114,15 @@
                     <div class="col-md-8">
                         <div class="d-flex align-items-center">
                             <div class="author-avatar me-3">
-                                <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center">
+                                <div
+                                    class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center">
                                     {{ post.author.first_name.0|default:post.author.username.0|upper }}
                                 </div>
                             </div>
                             <div>
                                 <h6 class="mb-1">
-                                    <a href="{% url 'accounts:user_profile' post.author.username %}" class="text-decoration-none text-dark">
+                                    <a href="{% url 'accounts:user_profile' post.author.username %}"
+                                        class="text-decoration-none text-dark">
                                         {{ post.author.get_full_name|default:post.author.username }}
                                     </a>
                                 </h6>
@@ -144,15 +151,16 @@
                 <div class="add-comment-form mb-5">
                     <div class="d-flex">
                         <div class="author-avatar me-3 flex-shrink-0">
-                            <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center">
+                            <div
+                                class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center">
                                 {{ user.first_name.0|default:user.username.0|upper }}
                             </div>
                         </div>
                         <div class="flex-grow-1">
                             <form id="commentForm">
                                 <div class="mb-3">
-                                    <textarea class="form-control" id="commentText" name="text" rows="3" 
-                                              placeholder="What are your thoughts?" required></textarea>
+                                    <textarea class="form-control" id="commentText" name="text" rows="3"
+                                        placeholder="What are your thoughts?" required></textarea>
                                 </div>
                                 <div class="d-flex justify-content-end">
                                     <button type="button" class="btn btn-primary" onclick="addComment()">
@@ -173,22 +181,34 @@
                     </button>
                 </div>
                 {% endif %}
-
-                <!-- Comments List -->
-                <div id="commentsList">
-                    {% for comment in comments %}
-                        {% include 'blog/components/comment_item.html' %}
-                    {% empty %}
-                        <div class="text-center py-5" id="noCommentsMessage">
-                            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No responses yet</h5>
-                            <p class="text-muted">Be the first to share what you think!</p>
-                        </div>
-                    {% endfor %}
+            </div>
+            <!-- Loading indicator -->
+            <div id="commentsLoading" class="text-center py-5 d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading comments...</span>
                 </div>
+                <p class="mt-2 text-muted">Loading comments...</p>
+            </div>
+
+            <!-- Comments List -->
+            <div id="commentsList">
+                {% for comment in comments %}
+                {% include 'blog/components/comment_item.html' %}
+                {% empty %}
+                <div class="text-center py-5" id="noCommentsMessage">
+                    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No responses yet</h5>
+                    <p class="text-muted">Be the first to share what you think!</p>
+                </div>
+                {% endfor %}
+            </div>
+            <!-- Pagination Container -->
+            <div id="commentsPagination">
+                {% include 'blog/components/pagination.html' with page_obj=comments %}
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <!-- Create Post Modal -->
@@ -203,12 +223,12 @@
             <div class="modal-body pt-0">
                 <form id="createPostForm">
                     <div class="mb-3">
-                        <input type="text" class="form-control form-control-lg border-0 px-0" 
-                               id="postTitle" name="title" placeholder="Title" required>
+                        <input type="text" class="form-control form-control-lg border-0 px-0" id="postTitle"
+                            name="title" placeholder="Title" required>
                     </div>
                     <div class="mb-3">
-                        <textarea class="form-control border-0 px-0" id="postContent" name="content" 
-                                  rows="10" placeholder="Tell your story..." required></textarea>
+                        <textarea class="form-control border-0 px-0" id="postContent" name="content" rows="10"
+                            placeholder="Tell your story..." required></textarea>
                     </div>
                 </form>
             </div>
@@ -244,12 +264,12 @@
             <div class="modal-body pt-0">
                 <form id="editPostForm">
                     <div class="mb-3">
-                        <input type="text" class="form-control form-control-lg border-0 px-0" 
-                               id="editPostTitle" name="title" value="{{ post.title }}" required>
+                        <input type="text" class="form-control form-control-lg border-0 px-0" id="editPostTitle"
+                            name="title" value="{{ post.title }}" required>
                     </div>
                     <div class="mb-3">
-                        <textarea class="form-control border-0 px-0" id="editPostContent" name="content" 
-                                  rows="15" required>{{ post.content }}</textarea>
+                        <textarea class="form-control border-0 px-0" id="editPostContent" name="content" rows="15"
+                            required>{{ post.content }}</textarea>
                     </div>
                 </form>
             </div>
@@ -277,7 +297,8 @@
 <!-- Edit form (hidden by default) -->
 <div class="edit-form mt-2 d-none" id="editForm{{ comment.id }}">
     <div class="mb-3">
-        <textarea class="form-control" id="editTextarea{{ comment.id }}" rows="3" placeholder="Edit your comment..."></textarea>
+        <textarea class="form-control" id="editTextarea{{ comment.id }}" rows="3"
+            placeholder="Edit your comment..."></textarea>
         <div class="invalid-feedback" id="editError{{ comment.id }}"></div>
     </div>
     <div class="d-flex justify-content-end">
@@ -380,29 +401,30 @@
         .post-actions-bar {
             position: static;
         }
-        
+
         .social-share {
             display: none !important;
         }
-        
+
         .content-text {
             font-size: 16px;
         }
-        
+
         .add-comment-form .d-flex {
             flex-direction: column;
         }
-        
+
         .add-comment-form .author-avatar {
             align-self: flex-start;
             margin-bottom: 1rem;
         }
     }
+
     .edit-form {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
     }
 
     .edit-form .form-control {
@@ -426,24 +448,24 @@
     async function toggleLike(postId) {
         try {
             const response = await BlogApp.api.post(`/ajax/posts/${postId}/like/`);
-            
+
             if (response.success) {
                 const likeBtn = document.querySelector('.like-btn');
                 const likeCount = likeBtn.querySelector('.like-count');
-                
+
                 if (response.is_liked) {
                     likeBtn.classList.add('liked');
                 } else {
                     likeBtn.classList.remove('liked');
                 }
-                
+
                 likeCount.textContent = response.total_likes;
-                
+
                 // Update all like buttons on the page
                 document.querySelectorAll(`.like-btn[onclick="toggleLike(${postId})"]`).forEach(btn => {
                     const count = btn.querySelector('.like-count');
                     if (count) count.textContent = response.total_likes;
-                    
+
                     if (response.is_liked) {
                         btn.classList.add('liked');
                     } else {
@@ -463,35 +485,35 @@
         const submitBtn = form.querySelector('.btn-primary');
         const textarea = document.getElementById('commentText');
         const text = textarea.value.trim();
-        
+
         if (!text) {
             BlogApp.showNotification('Please enter a comment', 'danger');
             return;
         }
-        
+
         BlogApp.setLoadingState(submitBtn, true);
-        
+
         try {
             const response = await BlogApp.api.post(`/ajax/posts/${postId}/comments/`, {
                 text: text
             });
-            
+
             if (response.success) {
                 // Add comment to list
                 addCommentToList(response.comment);
-                
+
                 // Clear form
                 textarea.value = '';
-                
+
                 // Hide "no comments" message
                 const noCommentsMsg = document.getElementById('noCommentsMessage');
                 if (noCommentsMsg) {
                     noCommentsMsg.remove();
                 }
-                
+
                 // Update comment count
                 updateCommentCount();
-                
+
                 BlogApp.showNotification(response.message, 'success');
             } else {
                 if (response.errors) {
@@ -543,7 +565,7 @@
                 </div>
             </div>
         `;
-        
+
         commentsList.insertAdjacentHTML('beforeend', commentHtml);
     }
 
@@ -552,20 +574,20 @@
         if (!confirm('Are you sure you want to delete this comment?')) {
             return;
         }
-        
+
         try {
             const response = await BlogApp.api.delete(`/ajax/comments/${commentId}/delete/`);
-            
+
             if (response.success) {
                 // Remove comment from DOM
                 const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
                 if (commentElement) {
                     commentElement.remove();
                 }
-                
+
                 // Update comment count
                 updateCommentCount();
-                
+
                 BlogApp.showNotification(response.message, 'success');
             }
         } catch (error) {
@@ -581,7 +603,7 @@
             const countElement = el.parentNode.textContent.trim().split(' ')[0];
             el.parentNode.innerHTML = `<i class="fas fa-comment me-1"></i>${commentItems}`;
         });
-        
+
         // Update header
         const headerCount = document.querySelector('#comments h4');
         if (headerCount) {
@@ -594,17 +616,17 @@
         const form = document.getElementById('editPostForm');
         const submitBtn = document.querySelector('#editPostModal .btn-primary');
         const formData = new FormData(form);
-        
+
         const title = formData.get('title').trim();
         const content = formData.get('content').trim();
-        
+
         if (!title || !content) {
             BlogApp.showNotification('Please fill in all fields', 'danger');
             return;
         }
-        
+
         BlogApp.setLoadingState(submitBtn, true);
-        
+
         try {
             const response = await fetch(`/ajax/posts/${postId}/update/`, {
                 method: 'PUT',
@@ -617,14 +639,14 @@
                     content: content
                 })
             });
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
                 // Update page content
                 document.querySelector('.post-header h1').textContent = data.post.title;
                 document.querySelector('.content-text').innerHTML = data.post.content.replace(/\n/g, '<br>');
-                
+
                 // Update "updated" text
                 const updatedText = document.querySelector('.text-muted.small');
                 if (updatedText && updatedText.textContent.includes('Updated')) {
@@ -632,11 +654,11 @@
                 } else if (updatedText) {
                     updatedText.innerHTML += ` <span class="ms-2"><i class="fas fa-edit"></i> Updated ${data.post.updated_at}</span>`;
                 }
-                
+
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('editPostModal'));
                 modal.hide();
-                
+
                 BlogApp.showNotification(data.message, 'success');
             } else {
                 BlogApp.showNotification(data.message || 'Failed to update post', 'danger');
@@ -654,10 +676,10 @@
         if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
             return;
         }
-        
+
         try {
             const response = await BlogApp.api.delete(`/ajax/posts/${postId}/delete/`);
-            
+
             if (response.success) {
                 BlogApp.showNotification(response.message, 'success');
                 setTimeout(() => {
@@ -706,39 +728,39 @@
         });
     }
 
-        // Create post function
+    // Create post function
     async function createPost() {
         const form = document.getElementById('createPostForm');
         const submitBtn = document.querySelector('#createPostModal .btn-primary');
         const formData = new FormData(form);
-        
+
         // Validate form
         const title = formData.get('title').trim();
         const content = formData.get('content').trim();
-        
+
         if (!title || !content) {
             BlogApp.showNotification('Please fill in all fields', 'danger');
             return;
         }
-        
+
         BlogApp.setLoadingState(submitBtn, true);
-        
+
         try {
             const response = await BlogApp.api.post('/ajax/posts/create/', {
                 title: title,
                 content: content
             });
-            
+
             if (response.success) {
                 BlogApp.showNotification(response.message, 'success');
-                
+
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('createPostModal'));
                 modal.hide();
-                
+
                 // Reset form
                 form.reset();
-                
+
                 // Redirect to post or reload page
                 setTimeout(() => {
                     if (response.redirect_url) {
@@ -784,50 +806,50 @@
         }
     }
 
-// Add this to your existing JavaScript in post_detail.html
-// Replace the existing editComment function with this complete implementation
+    // Add this to your existing JavaScript in post_detail.html
+    // Replace the existing editComment function with this complete implementation
 
-// Edit Comment Functions
-function editComment(commentId) {
-    console.log('Edit comment:', commentId);
-    
-    // Hide the comment text and show edit form
-    const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
-    if (!commentItem) {
-        console.error('Comment not found:', commentId);
-        return;
-    }
-    
-    const commentTextDiv = commentItem.querySelector('.comment-text');
-    const commentText = commentTextDiv.querySelector('p').textContent.trim();
-    
-    // Hide original text
-    commentTextDiv.style.display = 'none';
-    
-    // Create or show edit form
-    let editForm = commentItem.querySelector('.edit-form');
-    if (!editForm) {
-        editForm = createEditForm(commentId, commentText);
-        commentTextDiv.insertAdjacentElement('afterend', editForm);
-    } else {
-        editForm.classList.remove('d-none');
-        editForm.querySelector('textarea').value = commentText;
-    }
-    
-    // Focus on textarea
-    editForm.querySelector('textarea').focus();
-    
-    // Hide dropdown menu
-    const dropdownBtn = commentItem.querySelector('.dropdown-toggle');
-    if (dropdownBtn) {
-        // Close dropdown using Bootstrap
-        const dropdown = bootstrap.Dropdown.getInstance(dropdownBtn);
-        if (dropdown) dropdown.hide();
-    }
-}
+    // Edit Comment Functions
+    function editComment(commentId) {
+        console.log('Edit comment:', commentId);
 
-function createEditForm(commentId, originalText) {
-    const editFormHtml = `
+        // Hide the comment text and show edit form
+        const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
+        if (!commentItem) {
+            console.error('Comment not found:', commentId);
+            return;
+        }
+
+        const commentTextDiv = commentItem.querySelector('.comment-text');
+        const commentText = commentTextDiv.querySelector('p').textContent.trim();
+
+        // Hide original text
+        commentTextDiv.style.display = 'none';
+
+        // Create or show edit form
+        let editForm = commentItem.querySelector('.edit-form');
+        if (!editForm) {
+            editForm = createEditForm(commentId, commentText);
+            commentTextDiv.insertAdjacentElement('afterend', editForm);
+        } else {
+            editForm.classList.remove('d-none');
+            editForm.querySelector('textarea').value = commentText;
+        }
+
+        // Focus on textarea
+        editForm.querySelector('textarea').focus();
+
+        // Hide dropdown menu
+        const dropdownBtn = commentItem.querySelector('.dropdown-toggle');
+        if (dropdownBtn) {
+            // Close dropdown using Bootstrap
+            const dropdown = bootstrap.Dropdown.getInstance(dropdownBtn);
+            if (dropdown) dropdown.hide();
+        }
+    }
+
+    function createEditForm(commentId, originalText) {
+        const editFormHtml = `
         <div class="edit-form mt-2" id="editForm${commentId}">
             <div class="mb-3">
                 <textarea class="form-control" id="editTextarea${commentId}" rows="3" placeholder="Edit your comment...">${originalText}</textarea>
@@ -844,121 +866,121 @@ function createEditForm(commentId, originalText) {
             </div>
         </div>
     `;
-    
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = editFormHtml;
-    return tempDiv.firstElementChild;
-}
 
-function cancelEdit(commentId) {
-    console.log('Cancel edit:', commentId);
-    
-    const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
-    if (!commentItem) return;
-    
-    // Show original comment text
-    const commentTextDiv = commentItem.querySelector('.comment-text');
-    commentTextDiv.style.display = 'block';
-    
-    // Hide edit form
-    const editForm = commentItem.querySelector('.edit-form');
-    if (editForm) {
-        editForm.classList.add('d-none');
-        // Clear any error states
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = editFormHtml;
+        return tempDiv.firstElementChild;
+    }
+
+    function cancelEdit(commentId) {
+        console.log('Cancel edit:', commentId);
+
+        const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
+        if (!commentItem) return;
+
+        // Show original comment text
+        const commentTextDiv = commentItem.querySelector('.comment-text');
+        commentTextDiv.style.display = 'block';
+
+        // Hide edit form
+        const editForm = commentItem.querySelector('.edit-form');
+        if (editForm) {
+            editForm.classList.add('d-none');
+            // Clear any error states
+            const textarea = editForm.querySelector('textarea');
+            const errorDiv = editForm.querySelector('.invalid-feedback');
+            textarea.classList.remove('is-invalid');
+            if (errorDiv) errorDiv.textContent = '';
+        }
+    }
+
+    async function saveEdit(commentId) {
+        console.log('Save edit:', commentId);
+
+        const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
+        if (!commentItem) return;
+
+        const editForm = commentItem.querySelector('.edit-form');
         const textarea = editForm.querySelector('textarea');
+        const saveBtn = editForm.querySelector('.btn-primary');
+        const saveText = saveBtn.querySelector('.save-text');
+        const spinner = saveBtn.querySelector('.spinner-border');
         const errorDiv = editForm.querySelector('.invalid-feedback');
-        textarea.classList.remove('is-invalid');
-        if (errorDiv) errorDiv.textContent = '';
-    }
-}
 
-async function saveEdit(commentId) {
-    console.log('Save edit:', commentId);
-    
-    const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
-    if (!commentItem) return;
-    
-    const editForm = commentItem.querySelector('.edit-form');
-    const textarea = editForm.querySelector('textarea');
-    const saveBtn = editForm.querySelector('.btn-primary');
-    const saveText = saveBtn.querySelector('.save-text');
-    const spinner = saveBtn.querySelector('.spinner-border');
-    const errorDiv = editForm.querySelector('.invalid-feedback');
-    
-    const newText = textarea.value.trim();
-    
-    // Validation
-    if (!newText) {
-        textarea.classList.add('is-invalid');
-        errorDiv.textContent = 'Comment cannot be empty.';
-        return;
-    }
-    
-    // Clear previous errors
-    textarea.classList.remove('is-invalid');
-    errorDiv.textContent = '';
-    
-    // Show loading state
-    saveBtn.disabled = true;
-    saveText.textContent = 'Saving...';
-    spinner.classList.remove('d-none');
-    
-    try {
-        const response = await fetch(`/comments/ajax/edit/${commentId}/`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': BlogApp.getCsrfToken() // Use your existing CSRF function
-            },
-            body: JSON.stringify({ text: newText })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Update the comment text in DOM
-            const commentTextDiv = commentItem.querySelector('.comment-text p');
-            commentTextDiv.innerHTML = newText.replace(/\n/g, '<br>');
-            
-            // Add "edited" indicator if it doesn't exist
-            let updatedIndicator = commentItem.querySelector('.updated-indicator');
-            if (!updatedIndicator) {
-                updatedIndicator = document.createElement('span');
-                updatedIndicator.className = 'updated-indicator ms-2';
-                updatedIndicator.innerHTML = '<i class="fas fa-edit me-1"></i>edited';
-                
-                const timeElement = commentItem.querySelector('.text-muted');
-                if (timeElement) {
-                    timeElement.appendChild(updatedIndicator);
+        const newText = textarea.value.trim();
+
+        // Validation
+        if (!newText) {
+            textarea.classList.add('is-invalid');
+            errorDiv.textContent = 'Comment cannot be empty.';
+            return;
+        }
+
+        // Clear previous errors
+        textarea.classList.remove('is-invalid');
+        errorDiv.textContent = '';
+
+        // Show loading state
+        saveBtn.disabled = true;
+        saveText.textContent = 'Saving...';
+        spinner.classList.remove('d-none');
+
+        try {
+            const response = await fetch(`/comments/ajax/edit/${commentId}/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': BlogApp.getCsrfToken() // Use your existing CSRF function
+                },
+                body: JSON.stringify({ text: newText })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Update the comment text in DOM
+                const commentTextDiv = commentItem.querySelector('.comment-text p');
+                commentTextDiv.innerHTML = newText.replace(/\n/g, '<br>');
+
+                // Add "edited" indicator if it doesn't exist
+                let updatedIndicator = commentItem.querySelector('.updated-indicator');
+                if (!updatedIndicator) {
+                    updatedIndicator = document.createElement('span');
+                    updatedIndicator.className = 'updated-indicator ms-2';
+                    updatedIndicator.innerHTML = '<i class="fas fa-edit me-1"></i>edited';
+
+                    const timeElement = commentItem.querySelector('.text-muted');
+                    if (timeElement) {
+                        timeElement.appendChild(updatedIndicator);
+                    }
+                }
+
+                // Hide edit form and show original text
+                editForm.classList.add('d-none');
+                commentItem.querySelector('.comment-text').style.display = 'block';
+
+                // Show success message
+                BlogApp.showNotification(data.message, 'success');
+
+            } else {
+                // Handle errors
+                if (data.errors && data.errors.text) {
+                    textarea.classList.add('is-invalid');
+                    errorDiv.textContent = Array.isArray(data.errors.text) ? data.errors.text[0] : data.errors.text;
+                } else {
+                    BlogApp.showNotification(data.message || 'Failed to update comment', 'danger');
                 }
             }
-            
-            // Hide edit form and show original text
-            editForm.classList.add('d-none');
-            commentItem.querySelector('.comment-text').style.display = 'block';
-            
-            // Show success message
-            BlogApp.showNotification(data.message, 'success');
-            
-        } else {
-            // Handle errors
-            if (data.errors && data.errors.text) {
-                textarea.classList.add('is-invalid');
-                errorDiv.textContent = Array.isArray(data.errors.text) ? data.errors.text[0] : data.errors.text;
-            } else {
-                BlogApp.showNotification(data.message || 'Failed to update comment', 'danger');
-            }
+
+        } catch (error) {
+            console.error('Error updating comment:', error);
+            BlogApp.showNotification('An error occurred while updating the comment', 'danger');
+        } finally {
+            // Reset button state
+            saveBtn.disabled = false;
+            saveText.textContent = 'Save';
+            spinner.classList.add('d-none');
         }
-        
-    } catch (error) {
-        console.error('Error updating comment:', error);
-        BlogApp.showNotification('An error occurred while updating the comment', 'danger');
-    } finally {
-        // Reset button state
-        saveBtn.disabled = false;
-        saveText.textContent = 'Save';
-        spinner.classList.add('d-none');
     }
-}
 </script>
 {% endblock %}

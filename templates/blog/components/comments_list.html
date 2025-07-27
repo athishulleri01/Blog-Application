@@ -1,0 +1,9 @@
+{% for comment in comments %}
+    {% include 'blog/components/comment_item.html' %}
+{% empty %}
+    <div class="text-center py-5" id="noCommentsMessage">
+        <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No responses yet</h5>
+        <p class="text-muted">Be the first to share what you think!</p>
+    </div>
+{% endfor %}

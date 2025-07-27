@@ -17,6 +17,8 @@ from core_apps.posts.models import Post
 from .models import Comment
 from .serializers import CommentSerializer
 from core_apps.posts.serializers import PostSerializer, PostListSerializer
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.template.loader import render_to_string
 
 class CommentListCreateView(generics.ListCreateAPIView):
     """List comments for a post or create a new comment"""
@@ -26,6 +28,32 @@ class CommentListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         post_id = self.kwargs['post_id']
         return Comment.objects.filter(post_id=post_id).select_related('author').order_by('created_at')
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        
+        # Pagination
+        page = request.GET.get('page', 1)
+        paginator = Paginator(queryset, 4)  
+        
+        try:
+            comments = paginator.page(page)
+        except PageNotAnInteger:
+            comments = paginator.page(1)
+        except EmptyPage:
+            comments = paginator.page(paginator.num_pages)
+        
+        serializer = self.get_serializer(comments, many=True)
+        
+        return Response({
+            'comments': serializer.data,
+            'pagination': {
+                'current_page': comments.number,
+                'total_pages': paginator.num_pages,
+                'has_next': comments.has_next(),
+                'has_previous': comments.has_previous(),
+                'total_comments': paginator.count,
+            }
+        })
 
     def perform_create(self, serializer):
         post_id = self.kwargs['post_id']
@@ -194,3 +222,102 @@ def edit_comment_ajax(request, comment_id):
             'success': False,
             'message': f'An error occurred: {str(e)}'
         }, status=500)
+
+# Add new AJAX pagination view
+@require_http_methods(["GET"])
+def load_comments_page(request, post_id):
+    """Load a specific page of comments via AJAX"""
+    try:
+        post = get_object_or_404(Post, id=post_id)
+        comments = Comment.objects.filter(post=post).select_related('author').order_by('created_at')
+        
+        page = request.GET.get('page', 1)
+        paginator = Paginator(comments, 10)  # 10 comments per page
+        
+        try:
+            comments_page = paginator.page(page)
+        except PageNotAnInteger:
+            comments_page = paginator.page(1)
+        except EmptyPage:
+            comments_page = paginator.page(paginator.num_pages)
+        
+        # Render comments HTML
+        comments_html = render_to_string('blog/components/comments_list.html', {
+            'comments': comments_page,
+            'user': request.user,
+        })
+        
+        # Render pagination HTML
+        pagination_html = render_to_string('blog/components/pagination.html', {
+            'page_obj': comments_page,
+            'post_id': post_id,
+        })
+        
+        return JsonResponse({
+            'success': True,
+            'comments_html': comments_html,
+            'pagination_html': pagination_html,
+            'pagination': {
+                'current_page': comments_page.number,
+                'total_pages': paginator.num_pages,
+                'has_next': comments_page.has_next(),
+                'has_previous': comments_page.has_previous(),
+                'total_comments': paginator.count,
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error loading comments: {str(e)}'
+        }, status=500)
+
+# Update create_comment_ajax to handle pagination
+@require_http_methods(["POST"])
+@login_required
+def create_comment_ajax(request, post_id):
+    """Create a new comment via AJAX with pagination support"""
+    try:
+        post = get_object_or_404(Post, id=post_id)
+        data = json.loads(request.body)
+        
+        text = data.get('text', '').strip()
+        if not text:
+            return JsonResponse({
+                'success': False,
+                'errors': {'text': ['This field is required.']}
+            })
+        
+        comment = Comment.objects.create(
+            post=post,
+            author=request.user,
+            text=text
+        )
+        
+        # Get total comments for pagination calculation
+        total_comments = Comment.objects.filter(post=post).count()
+        
+        # Calculate which page the new comment should be on
+        # Assuming newest comments go to the last page
+        comments_per_page = 10
+        last_page = (total_comments - 1) // comments_per_page + 1
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Comment added successfully!',
+            'comment': {
+                'id': comment.id,
+                'text': comment.text,
+                'author': comment.author.username,
+                'author_full_name': comment.author.get_full_name() or comment.author.username,
+                'created_at': comment.created_at.strftime('%B %d, %Y at %I:%M %p'),
+            },
+            'should_reload_page': last_page,  # Tell frontend which page to load
+            'total_comments': total_comments
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'An error occurred: {str(e)}'
+        })
