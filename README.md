@@ -5,13 +5,14 @@
 2. [Features](#features)
 3. [Project Structure](#project-structure)
 4. [Setup Instructions](#setup-instructions)
-5. [API Documentation](#api-documentation)
-6. [Frontend Features](#frontend-features)
-7. [Models Documentation](#models-documentation)
-8. [Views Documentation](#views-documentation)
-9. [URL Configuration](#url-configuration)
-10. [Testing](#testing)
-11. [Deployment](#deployment)
+5. [Screenshots](#screenshots)
+6. [API Documentation](#api-documentation)
+7. [Frontend Features](#frontend-features)
+8. [Models Documentation](#models-documentation)
+9. [Views Documentation](#views-documentation)
+10. [URL Configuration](#url-configuration)
+11. [Testing](#testing)
+12. [Deployment](#deployment)
 
 ## Project Overview
 
@@ -194,6 +195,59 @@ python manage.py test core_apps.posts
 python manage.py test core_apps.accounts
 python manage.py test core_apps.comments
 ```
+
+## Screenshots
+
+### 🏠 Homepage (Before Login)
+![Homepage](screenshots/homepage.png)
+
+### 🔐 Login Page
+![Login](screenshots/login.png)
+
+### 📝 Register Page
+![Register](screenshots/register.png)
+
+### 🏡 Home (After Login)
+![Home Logged In](screenshots/home_loggedin.png)
+
+### ✍️ Create a Post
+![Post a Post](screenshots/post_create.png)
+
+### 👀 View Posts
+![View Posts](screenshots/post_view.png)
+
+### ✏️ Edit a Post
+![Edit Post](screenshots/post_edit.png)
+
+### 🗑️ Delete a Post
+![Delete Post](screenshots/post_delete.png)
+
+### ❤️ Like a Post
+![Like Post](screenshots/post_like.png)
+
+### 💬 Comment on a Post
+![Comment Post](screenshots/post_comment.png)
+
+### 🖊️ Edit a Comment
+![Edit Comment](screenshots/comment_edit.png)
+
+### ❌ Delete a Comment
+![Delete Comment](screenshots/comment_delete.png)
+
+### 👤 Profile Page
+![Profile Page](screenshots/profile_page.png)
+
+### ⚙️ Edit Profile
+![Edit Profile](screenshots/profile_edit.png)
+
+### 🧾 View User's Posts
+![User Posts](screenshots/user_posts.png)
+
+### 💬 View User's Comments
+![User Comments](screenshots/user_comments.png)
+
+### 🔓 Logout
+![Logout](screenshots/logout.png)
 
 ## API Documentation
 
