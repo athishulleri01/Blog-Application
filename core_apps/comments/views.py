@@ -72,8 +72,9 @@ class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
             self.permission_denied(self.request, message="You can only edit your own comments.")
         return obj
 
+#.......................................API.......................................................
 
-
+#Create comment
 @require_http_methods(["POST"])
 @login_required
 def create_comment_ajax(request, post_id):
@@ -123,6 +124,8 @@ def create_comment_ajax(request, post_id):
             'message': f'An error occurred: {str(e)}'
         })
 
+
+#Delete comment
 @require_http_methods(["DELETE"])
 @login_required
 def delete_comment_ajax(request, comment_id):
@@ -148,6 +151,7 @@ def delete_comment_ajax(request, comment_id):
         })
 
 
+#Edit comment
 @require_http_methods(["PUT"])
 @login_required
 def edit_comment_ajax(request, comment_id):
@@ -223,7 +227,8 @@ def edit_comment_ajax(request, comment_id):
             'message': f'An error occurred: {str(e)}'
         }, status=500)
 
-# Add new AJAX pagination view
+
+# AJAX pagination view for Comments
 @require_http_methods(["GET"])
 def load_comments_page(request, post_id):
     """Load a specific page of comments via AJAX"""
@@ -272,7 +277,8 @@ def load_comments_page(request, post_id):
             'message': f'Error loading comments: {str(e)}'
         }, status=500)
 
-# Update create_comment_ajax to handle pagination
+
+# Handle pagination
 @require_http_methods(["POST"])
 @login_required
 def create_comment_ajax(request, post_id):

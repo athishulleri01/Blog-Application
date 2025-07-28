@@ -19,9 +19,51 @@ class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
     success_url = reverse_lazy('posts:home')
 
+
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('posts:home')
 
+
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    
+    form = CustomUserCreationForm()
+    return render(request, 'user/auth/signup.html', {'form': form})
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    
+    form = CustomAuthenticationForm()
+    return render(request, 'user/auth/signin.html', {'form': form})
+
+
+@login_required
+def profile_view(request, username=None):
+    if username:
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return redirect('home')
+    else:
+        user = request.user
+    
+    profile, created = UserProfile.objects.get_or_create(user=user)
+    posts = user.post_set.all().order_by('-created_at')
+    comments = user.comment_set.all().order_by('-created_at')
+    
+    context = {
+        'profile_user': user,
+        'profile': profile,
+        'posts': posts,
+        'comments': comments,
+    }
+    return render(request, 'user/profile/profile.html', context)
+
+
+#.......................................API.......................................................
 @require_http_methods(["POST"])
 def ajax_register(request):
     try:
@@ -56,6 +98,7 @@ def ajax_register(request):
             'message': 'An error occurred during registration.'
         })
 
+
 @require_http_methods(["POST"])
 def ajax_login(request):
     try:
@@ -84,44 +127,8 @@ def ajax_login(request):
             'success': False,
             'message': 'An error occurred during login.'
         })
+  
 
-def register_view(request):
-    if request.user.is_authenticated:
-        return redirect('home')
-    
-    form = CustomUserCreationForm()
-    return render(request, 'user/auth/signup.html', {'form': form})
-
-def login_view(request):
-    if request.user.is_authenticated:
-        return redirect('home')
-    
-    form = CustomAuthenticationForm()
-    return render(request, 'user/auth/signin.html', {'form': form})
-
-@login_required
-def profile_view(request, username=None):
-    if username:
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return redirect('home')
-    else:
-        user = request.user
-    
-    profile, created = UserProfile.objects.get_or_create(user=user)
-    posts = user.post_set.all().order_by('-created_at')
-    comments = user.comment_set.all().order_by('-created_at')
-    
-    context = {
-        'profile_user': user,
-        'profile': profile,
-        'posts': posts,
-        'comments': comments,
-    }
-    return render(request, 'user/profile/profile.html', context)
-
-    
 @login_required
 def ajax_edit_profile(request):
     if request.method == 'POST':

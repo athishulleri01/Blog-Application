@@ -90,38 +90,9 @@ class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
             self.permission_denied(self.request, message="You can only edit your own posts.")
         return obj
 
+#.......................................API.......................................................
 
-# AJAX Views
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def toggle_like(request, post_id):
-    """Toggle like/unlike for a post"""
-    try:
-        post = get_object_or_404(Post, id=post_id)
-        user = request.user
-        
-        if post.likes.filter(id=user.id).exists():
-            post.likes.remove(user)
-            is_liked = False
-            message = "Post unliked"
-        else:
-            post.likes.add(user)
-            is_liked = True
-            message = "Post liked"
-        
-        return Response({
-            'success': True,
-            'is_liked': is_liked,
-            'total_likes': post.total_likes(),
-            'message': message
-        })
-    except Exception as e:
-        return Response({
-            'success': False,
-            'message': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
+#create a post
 @require_http_methods(["POST"])
 @login_required
 def create_post_ajax(request):
@@ -178,6 +149,8 @@ def create_post_ajax(request):
             'message': f'An error occurred: {str(e)}'
         })
 
+
+# Update post
 @require_http_methods(["PUT"])
 @login_required
 def update_post_ajax(request, post_id):
@@ -234,6 +207,8 @@ def update_post_ajax(request, post_id):
             'message': f'An error occurred: {str(e)}'
         })
 
+
+# Delete post
 @require_http_methods(["DELETE"])
 @login_required
 def delete_post_ajax(request, post_id):
@@ -259,6 +234,7 @@ def delete_post_ajax(request, post_id):
             'message': f'An error occurred: {str(e)}'
         })
 
+
 # Search API
 @api_view(['GET'])
 def search_posts(request):
@@ -276,3 +252,35 @@ def search_posts(request):
     
     serializer = PostListSerializer(posts, many=True, context={'request': request})
     return Response({'results': serializer.data})
+
+
+
+# Api for like
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_like(request, post_id):
+    """Toggle like/unlike for a post"""
+    try:
+        post = get_object_or_404(Post, id=post_id)
+        user = request.user
+        
+        if post.likes.filter(id=user.id).exists():
+            post.likes.remove(user)
+            is_liked = False
+            message = "Post unliked"
+        else:
+            post.likes.add(user)
+            is_liked = True
+            message = "Post liked"
+        
+        return Response({
+            'success': True,
+            'is_liked': is_liked,
+            'total_likes': post.total_likes(),
+            'message': message
+        })
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

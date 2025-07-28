@@ -388,15 +388,8 @@ All major operations are implemented with AJAX for smooth user experience:
 
 ## Models Documentation
 
-### User Profile Model
-```python
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    bio = models.TextField(max_length=500, blank=True)
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-```
-
+### User Model
+- Used default user model
 ### Post Model
 ```python
 class Post(models.Model):
@@ -519,16 +512,6 @@ python manage.py collectstatic
 - Configure Nginx for static file serving
 - Set up SSL certificates
 
-### Docker Deployment (Optional)
-```dockerfile
-FROM python:3.9
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-EXPOSE 8000
-CMD ["gunicorn", "blog_project.wsgi:application", "--bind", "0.0.0.0:8000"]
-```
 
 ## Security Considerations
 
@@ -573,19 +556,6 @@ Check file permissions and Django user permissions
 4. **Database Connection Issues**
 Verify database configuration in settings.py
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Run the test suite
-6. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Support
 
 For support and questions:
@@ -595,4 +565,3 @@ For support and questions:
 
 ---
 
-**Note**: This documentation covers the complete setup and usage of the Django blog application. Make sure to follow the setup instructions carefully and test all features before deployment.
